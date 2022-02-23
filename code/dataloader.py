@@ -230,8 +230,16 @@ class Loader(BasicDataset):
         self.mode = self.mode_dict['train']
         self.n_user = 0
         self.m_item = 0
-        train_file = path + '/train.txt'
-        test_file = path + '/test.txt'
+
+        print(config['test_date'])
+        if world.dataset == 'smart_channel':
+            train_file = path + '/train.txt'
+            test_file = path + '/test.txt'
+            # train_file = path + '/date='+ config['test_date'] +'/train.txt'
+            # test_file = path + '/date='+ config['test_date'] + '/test.txt'
+        else:
+            train_file = path + '/train.txt'
+            test_file = path + '/test.txt'
         self.path = path
         trainUniqueUsers, trainItem, trainUser = [], [], []
         testUniqueUsers, testItem, testUser = [], [], []
@@ -242,6 +250,7 @@ class Loader(BasicDataset):
             for l in f.readlines():
                 if len(l) > 0:
                     l = l.strip('\n').split(' ')
+                    # print(l)
                     items = [int(i) for i in l[1:]]
                     uid = int(l[0])
                     trainUniqueUsers.append(uid)
@@ -260,6 +269,7 @@ class Loader(BasicDataset):
                     l = l.strip('\n').split(' ')
                     items = [int(i) for i in l[1:]]
                     uid = int(l[0])
+                    
                     testUniqueUsers.append(uid)
                     testUser.extend([uid] * len(items))
                     testItem.extend(items)
@@ -275,6 +285,8 @@ class Loader(BasicDataset):
         self.Graph = None
         print(f"{self.trainDataSize} interactions for training")
         print(f"{self.testDataSize} interactions for testing")
+        print(f"{self.n_user} number of users")
+        print(f"{self.m_item} number of items")
         print(f"{world.dataset} Sparsity : {(self.trainDataSize + self.testDataSize) / self.n_users / self.m_items}")
 
         # (users,items), bipartite graph

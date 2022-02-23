@@ -139,6 +139,7 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
         results['recall'] /= float(len(users))
         results['precision'] /= float(len(users))
         results['ndcg'] /= float(len(users))
+        results['f1_score'] = 2*(results['precision'] * results['recall']) / ((results['precision'] + results['recall']))
         # results['auc'] = np.mean(auc_record)
         if world.tensorboard:
             w.add_scalars(f'Test/Recall@{world.topks}',
@@ -147,6 +148,8 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
                           {str(world.topks[i]): results['precision'][i] for i in range(len(world.topks))}, epoch)
             w.add_scalars(f'Test/NDCG@{world.topks}',
                           {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, epoch)
+            w.add_scalars(f'Test/F1-score@{world.topks}',
+                          {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, epoch)
         if multicore == 1:
             pool.close()
         print(results)

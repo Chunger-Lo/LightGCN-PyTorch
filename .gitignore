@@ -14,3 +14,7 @@ __pycache__/
 *.npy
 *.so
 .rendered
+
+data/smart_channel/date=*
+data/smart_channel/*.npz
+data/smart_channel/*.txt
