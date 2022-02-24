@@ -15,6 +15,6 @@ __pycache__/
 *.so
 .rendered
 
-data/smart_channel/date=*
-data/smart_channel/*.npz
-data/smart_channel/*.txt
+data/sc/date=*
+data/sc/*.npz
+data/sc/*.txt
