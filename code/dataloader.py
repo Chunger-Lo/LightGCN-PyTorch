@@ -232,12 +232,11 @@ class Loader(BasicDataset):
         self.m_item = 0
 
         print(config['test_date'])
-        if world.dataset == 'smart_channel':
-            train_file = path + '/train.txt'
-            test_file = path + '/test.txt'
-            # train_file = path + '/date='+ config['test_date'] +'/train.txt'
-            # test_file = path + '/date='+ config['test_d
-            # ate'] + '/test.txt'
+        if world.dataset == 'sc':
+            # train_file = path + '/train.txt'
+            # test_file = path + '/test.txt'
+            train_file = path + '/date='+ config['test_date'] +'/train.txt'
+            test_file = path + '/date='+ config['test_date'] + '/test.txt'
         else:
             train_file = path + '/train.txt'
             test_file = path + '/test.txt'
@@ -251,7 +250,6 @@ class Loader(BasicDataset):
             for l in f.readlines():
                 if len(l) > 0:
                     l = l.strip('\n').split(' ')
-                    # print(l)
                     items = [int(i) for i in l[1:]]
                     uid = int(l[0])
                     trainUniqueUsers.append(uid)
@@ -342,13 +340,18 @@ class Loader(BasicDataset):
         data = torch.FloatTensor(coo.data)
         return torch.sparse.FloatTensor(index, data, torch.Size(coo.shape))
         
-    def getSparseGraph(self):
+    def getSparseGraph(self, config = world.config):
         print("loading adjacency matrix")
         if self.Graph is None:
             try:
-                pre_adj_mat = sp.load_npz(self.path + '/s_pre_adj_mat.npz')
-                print("successfully loaded...")
-                norm_adj = pre_adj_mat
+                if world.dataset == 'sc': 
+                    re_adj_mat = sp.load_npz(self.path +'/date='+ config['test_date']+'/s_pre_adj_mat.npz')
+                    print("successfully loaded...")
+                    norm_adj = pre_adj_mat
+                else:
+                    pre_adj_mat = sp.load_npz(self.path + '/s_pre_adj_mat.npz')
+                    print("successfully loaded...")
+                    norm_adj = pre_adj_mat
             except :
                 print("generating adjacency matrix")
                 s = time()
@@ -370,7 +373,11 @@ class Loader(BasicDataset):
                 norm_adj = norm_adj.tocsr()
                 end = time()
                 print(f"costing {end-s}s, saved norm_mat...")
-                sp.save_npz(self.path + '/s_pre_adj_mat.npz', norm_adj)
+
+                if world.dataset == 'sc':
+                    sp.save_npz(self.path + '/date='+ config['test_date']+'/s_pre_adj_mat.npz', norm_adj)
+                else:
+                    sp.save_npz(self.path + '/s_pre_adj_mat.npz', norm_adj)
 
             if self.split == True:
                 self.Graph = self._split_A_hat(norm_adj)

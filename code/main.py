@@ -13,6 +13,9 @@ print(">>SEED:", world.seed)
 # ==============================
 import register
 from register import dataset
+import time
+
+time.perf_counter()
 
 Recmodel = register.MODELS[world.model_name](world.config, dataset)
 Recmodel = Recmodel.to(world.device)
@@ -49,3 +52,5 @@ try:
 finally:
     if world.tensorboard:
         w.close()
+
+time.perf_counter()

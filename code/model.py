@@ -93,6 +93,8 @@ class LightGCN(BasicModel):
     def __init_weight(self):
         self.num_users  = self.dataset.n_users
         self.num_items  = self.dataset.m_items
+        cprint(f'number of users: {self.num_users}')
+        cprint(f'number of items: {self.num_items}')
         self.latent_dim = self.config['latent_dim_rec']
         self.n_layers = self.config['lightGCN_n_layers']
         self.keep_prob = self.config['keep_prob']
