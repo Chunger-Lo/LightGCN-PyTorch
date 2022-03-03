@@ -240,14 +240,23 @@ class Loader(BasicDataset):
         else:
             train_file = path + '/train.txt'
             test_file = path + '/test.txt'
+
+        print(f'Loaded {train_file}')
+        print(f'Loaded {test_file}')
         self.path = path
         trainUniqueUsers, trainItem, trainUser = [], [], []
         testUniqueUsers, testItem, testUser = [], [], []
         self.traindataSize = 0
         self.testDataSize = 0
+        self.n_user = 0
+        self.n_train = 0
+        self.n_test = 0
+        self.m_item = 0
 
         with open(train_file) as f:
             for l in f.readlines():
+                self.n_user += 1
+                self.n_train += 1
                 if len(l) > 0:
                     l = l.strip('\n').split(' ')
                     items = [int(i) for i in l[1:]]
@@ -255,26 +264,38 @@ class Loader(BasicDataset):
                     trainUniqueUsers.append(uid)
                     trainUser.extend([uid] * len(items))
                     trainItem.extend(items)
-                    self.m_item = max(self.m_item, max(items))
+                    if len(items)>0:
+                        self.m_item = max(self.m_item, max(items))
                     self.n_user = max(self.n_user, uid)
                     self.traindataSize += len(items)
+                    # if self.n_user == 5000:
+                    #     break
         self.trainUniqueUsers = np.array(trainUniqueUsers)
         self.trainUser = np.array(trainUser)
         self.trainItem = np.array(trainItem)
 
         with open(test_file) as f:
             for l in f.readlines():
+                self.n_test += 1
                 if len(l) > 0:
                     l = l.strip('\n').split(' ')
                     items = [int(i) for i in l[1:]]
                     uid = int(l[0])
-                    
                     testUniqueUsers.append(uid)
                     testUser.extend([uid] * len(items))
                     testItem.extend(items)
-                    self.m_item = max(self.m_item, max(items))
-                    self.n_user = max(self.n_user, uid)
+                    if len(items)>0:
+                        self.m_item = max(self.m_item, max(items))
+                    # self.n_user = max(self.n_user, uid)
+                    
                     self.testDataSize += len(items)
+                    # if uid in self.trainUser:
+                    #     testUniqueUsers.append(uid)
+                    #     testUser.extend([uid] * len(items))
+                    #     testItem.extend(items)
+                    #     self.m_item = max(self.m_item, max(items))
+                    #     self.n_user = max(self.n_user, uid)
+                    #     self.testDataSize += len(items)
         self.m_item += 1
         self.n_user += 1
         self.testUniqueUsers = np.array(testUniqueUsers)
@@ -284,6 +305,8 @@ class Loader(BasicDataset):
         self.Graph = None
         print(f"{self.trainDataSize} interactions for training")
         print(f"{self.testDataSize} interactions for testing")
+        print(f"{self.n_train} number of users in train")
+        print(f"{self.n_test} number of users in test")
         print(f"{self.n_user} number of users")
         print(f"{self.m_item} number of items")
         print(f"{world.dataset} Sparsity : {(self.trainDataSize + self.testDataSize) / self.n_users / self.m_items}")
@@ -364,10 +387,12 @@ class Loader(BasicDataset):
                 # adj_mat = adj_mat + sp.eye(adj_mat.shape[0])
                 
                 rowsum = np.array(adj_mat.sum(axis=1))
-                d_inv = np.power(rowsum, -0.5).flatten()
+                d_inv = np.power(rowsum, -0.5).flatten() 
+                # note: what if rowsum have value = 0
+                # set inf to 0
                 d_inv[np.isinf(d_inv)] = 0.
                 d_mat = sp.diags(d_inv)
-                
+                ## tilde A
                 norm_adj = d_mat.dot(adj_mat)
                 norm_adj = norm_adj.dot(d_mat)
                 norm_adj = norm_adj.tocsr()

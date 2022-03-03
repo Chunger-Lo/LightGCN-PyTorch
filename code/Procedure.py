@@ -124,9 +124,10 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
             users_list.append(batch_users)
             rating_list.append(rating_K.cpu())
             groundTrue_list.append(groundTrue)
-        # print(f'length of users_list = {len(users_list)}')
-        # print(f'total_batch = {total_batch}')
-        assert total_batch == len(users_list)
+        print(f'length of users_list = {len(users_list)}')
+        print(f'total_batch = {total_batch}')
+        assert total_batch == len(users_list)+1
+        # assert total_batch == len(users_list)
         X = zip(rating_list, groundTrue_list)
         if multicore == 1:
             pre_results = pool.map(test_one_batch, X)

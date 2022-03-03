@@ -18,3 +18,4 @@ __pycache__/
 data/sc/date=*
 data/sc/*.npz
 data/sc/*.txt
+*-checkpoint*

@@ -173,7 +173,7 @@ class LightGCN(BasicModel):
             embs.append(all_emb)
         embs = torch.stack(embs, dim=1)
         #print(embs.size())
-        light_out = torch.mean(embs, dim=1)
+        light_out = torch.mean(embs, dim=1) ## Final embedding
         users, items = torch.split(light_out, [self.num_users, self.num_items])
         return users, items
     
@@ -182,6 +182,7 @@ class LightGCN(BasicModel):
         users_emb = all_users[users.long()]
         items_emb = all_items
         rating = self.f(torch.matmul(users_emb, items_emb.t()))
+        ## score of (u, v)
         return rating
     
     def getEmbedding(self, users, pos_items, neg_items):
