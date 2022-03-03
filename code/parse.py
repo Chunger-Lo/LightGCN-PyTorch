@@ -16,7 +16,7 @@ def parse_args():
                         help="the embedding size of lightGCN")
     parser.add_argument('--layer', type=int,default=3,
                         help="the layer num of lightGCN")
-    parser.add_argument('--lr', type=float,default=0.001,
+    parser.add_argument('--lr', type=float,default=0.01,
                         help="the learning rate")
     parser.add_argument('--decay', type=float,default=1e-4,
                         help="the weight decay for l2 normalizaton")
@@ -26,7 +26,7 @@ def parse_args():
                         help="the batch size for bpr loss training procedure")
     parser.add_argument('--a_fold', type=int,default=100,
                         help="the fold num used to split large adj matrix, like gowalla")
-    parser.add_argument('--testbatch', type=int,default=5,
+    parser.add_argument('--testbatch', type=int,default=512,
                         help="the batch size of users for testing")
     parser.add_argument('--dataset', type=str,default='sc',
                         help="available datasets: [lastfm, gowalla, yelp2018, amazon-book, sc]")

@@ -296,6 +296,8 @@ class Loader(BasicDataset):
                     #     self.m_item = max(self.m_item, max(items))
                     #     self.n_user = max(self.n_user, uid)
                     #     self.testDataSize += len(items)
+                    # if self.n_test == 5001:
+                    #     break
         self.m_item += 1
         self.n_user += 1
         self.testUniqueUsers = np.array(testUniqueUsers)

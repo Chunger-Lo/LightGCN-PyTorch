@@ -97,8 +97,14 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
         # auc_record = []
         # ratings = []
         total_batch = len(users) // u_batch_size + 1
+        #total_batch == len(users_list)+1
+        print(f'Length of test users = {len(users)}')
+        print(f'Batch size = {u_batch_size}')
         # total_batch = len(users) // u_batch_size 
+        count = 0
         for batch_users in utils.minibatch(users, batch_size=u_batch_size):
+            if count % 10 == 0:
+                print(f'Batch #: {count}')
             allPos = dataset.getUserPosItems(batch_users)
             groundTrue = [testDict[u] for u in batch_users]
             batch_users_gpu = torch.Tensor(batch_users).long()
@@ -124,10 +130,12 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
             users_list.append(batch_users)
             rating_list.append(rating_K.cpu())
             groundTrue_list.append(groundTrue)
+            count += 1
         print(f'length of users_list = {len(users_list)}')
         print(f'total_batch = {total_batch}')
-        assert total_batch == len(users_list)+1
-        # assert total_batch == len(users_list)
+
+        check = (total_batch == len(users_list)+1) or (total_batch == len(users_list))
+        assert check == 1
         X = zip(rating_list, groundTrue_list)
         if multicore == 1:
             pre_results = pool.map(test_one_batch, X)
