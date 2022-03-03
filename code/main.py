@@ -44,11 +44,11 @@ try:
     for epoch in range(world.TRAIN_epochs):
         start = time.time()
         print(epoch)
-        # if epoch %10 == 0:
-            # cprint("[TEST]")
-            # Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
         output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, epoch, neg_k=Neg_k,w=w)
         print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
+        if epoch %10 == 0:
+            cprint("[TEST]")
+            Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
         torch.save(Recmodel.state_dict(), weight_file)
 finally:
     if world.tensorboard:
