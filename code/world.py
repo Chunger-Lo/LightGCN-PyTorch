@@ -27,6 +27,8 @@ sys.path.append(join(CODE_PATH, 'sources'))
 
 if not os.path.exists(FILE_PATH):
     os.makedirs(FILE_PATH, exist_ok=True)
+if not os.path.exists(BOARD_PATH):
+    os.makedirs(BOARD_PATH, exist_ok=True)
 
 
 config = {}

@@ -14,6 +14,7 @@ print(">>SEED:", world.seed)
 import register
 from register import dataset
 import time
+from datetime import timedelta
 
 start = time.time()
 
@@ -33,20 +34,36 @@ Neg_k = 1
 
 # init tensorboard
 if world.tensorboard:
-    w : SummaryWriter = SummaryWriter(
-                                    join(world.BOARD_PATH, time.strftime("%m-%d-%Hh%Mm%Ss-") + "-" + world.comment)
-                                    )
+    tensor_log_path = join(world.BOARD_PATH, 
+                                    time.strftime("%m%d") + "-" + "te" + world.config["test_date"]+"_" + world.comment)
+    w : SummaryWriter = SummaryWriter(tensor_log_path)
+    world.cprint(f"Write to {tensor_log_path}")
 else:
     w = None
     world.cprint("not enable tensorflowboard")
 
+# if mode == 'fastdebug':
+
+# if mode == 'train':
+    # try:
+    #     for epoch in range(world.TRAIN_epochs):
+    #         start = time.time()
+    #         output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, epoch, neg_k=Neg_k,w=w)
+    #         print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
+    #         if epoch %10 == 0:
+    #             cprint("[TEST]")
+    #             Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
+    #         torch.save(Recmodel.state_dict(), weight_file)
+    # finally:
+    #     if world.tensorboard:
+    #         w.close()
 try:
     for epoch in range(world.TRAIN_epochs):
         start = time.time()
-        print(epoch)
         output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, epoch, neg_k=Neg_k,w=w)
         print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-        if epoch %10 == 0:
+        if (epoch+1) %10 == 0:
+        # if True:
             cprint("[TEST]")
             Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
         torch.save(Recmodel.state_dict(), weight_file)
@@ -56,4 +73,5 @@ finally:
 
 end = time.time()
 time_elasped = end - start
-print(f'Time elasped: {time_elasped}')
+
+print(f'Time elasped: {str(timedelta(minutes=end - start))}')
