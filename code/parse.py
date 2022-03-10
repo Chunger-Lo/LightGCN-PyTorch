@@ -10,7 +10,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Go lightGCN")
-    parser.add_argument('--bpr_batch', type=int,default=2048,
+    parser.add_argument('--bpr_batch', type=int,default=[4096, 9192],
                         help="the batch size for bpr loss training procedure")
     parser.add_argument('--recdim', type=int,default=64,
                         help="the embedding size of lightGCN")
@@ -26,7 +26,7 @@ def parse_args():
                         help="dropout prob")
     parser.add_argument('--a_fold', type=int,default=100,
                         help="the fold num used to split large adj matrix, like gowalla")
-    parser.add_argument('--testbatch', type=int,default=512,
+    parser.add_argument('--testbatch', type=int,default=1024,
                         help="the batch size of users for testing")
     parser.add_argument('--dataset', type=str,default='sc',
                         help="available datasets: [lastfm, gowalla, yelp2018, amazon-book, sc]")
@@ -38,10 +38,11 @@ def parse_args():
                         help="enable tensorboard")
     parser.add_argument('--comment', type=str,default="")
     parser.add_argument('--load', type=int,default=0)
-    parser.add_argument('--epochs', type=int,default=3)
+    parser.add_argument('--epochs', type=int,default=0)
     parser.add_argument('--multicore', type=int, default=0, help='whether we use multiprocessing or not in test')
     parser.add_argument('--pretrain', type=int, default=0, help='whether we use pretrained weight or not')
     parser.add_argument('--seed', type=int, default=2020, help='random seed')
     parser.add_argument('--model', type=str, default='lgn', help='rec-model, support [mf, lgn]')
     parser.add_argument('--test_date', type=str, default='20211226', help='target test date')
+    parser.add_argument('--mode', type=str, default='fastdebug', help='mode = fastdebug/train')
     return parser.parse_args()

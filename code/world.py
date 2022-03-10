@@ -72,6 +72,7 @@ PATH = args.path
 topks = eval(args.topks)
 tensorboard = args.tensorboard
 comment = args.comment
+mode = args.mode
 # let pandas shut up
 from warnings import simplefilter
 simplefilter(action="ignore", category=FutureWarning)

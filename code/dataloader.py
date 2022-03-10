@@ -268,8 +268,9 @@ class Loader(BasicDataset):
                         self.m_item = max(self.m_item, max(items))
                     self.n_user = max(self.n_user, uid)
                     self.traindataSize += len(items)
-                    # if self.n_user == 5000:
-                    #     break
+                if world.mode == 'fastdebug':
+                    if self.n_train == 10000:
+                        break
         self.trainUniqueUsers = np.array(trainUniqueUsers)
         self.trainUser = np.array(trainUser)
         self.trainItem = np.array(trainItem)
@@ -296,8 +297,9 @@ class Loader(BasicDataset):
                     #     self.m_item = max(self.m_item, max(items))
                     #     self.n_user = max(self.n_user, uid)
                     #     self.testDataSize += len(items)
-                    # if self.n_test == 1024:
-                    #     break
+                if world.mode == 'fastdebug':
+                    if self.n_test == 1024:
+                        break
         self.m_item += 1
         self.n_user += 1
         self.testUniqueUsers = np.array(testUniqueUsers)
