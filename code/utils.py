@@ -61,46 +61,6 @@ def UniformSample_original(dataset, neg_ratio = 1):
         S = UniformSample_original_python(dataset)
     return S
 
-def UniformSample_original_python(dataset, pair_type):
-    """
-    the original impliment of BPR Sampling in LightGCN
-    :return:
-        np.array
-    """
-    total_start = time()
-    dataset : BasicDataset
-    
-    if pair_type = 'user-item':
-        user_num = dataset.trainDataSize    
-        users = np.random.randint(0, dataset.n_users, user_num)
-        allPos = dataset.allPos
-    if pair_type == 'user-subtag':
-        allPos = dataset.allPos
-    if pair_type == 'item-subtag':
-        allPos = dataset.allPos
-    
-    S = []
-    sample_time1 = 0.
-    sample_time2 = 0.
-    for i, user in enumerate(users):
-        start = time()
-        posForUser = allPos[user]
-        if len(posForUser) == 0:
-            continue
-        sample_time2 += time() - start
-        posindex = np.random.randint(0, len(posForUser))
-        positem = posForUser[posindex]
-        while True:
-            negitem = np.random.randint(0, dataset.m_items)
-            if negitem in posForUser:
-                continue
-            else:
-                break
-        S.append([user, positem, negitem])
-        end = time()
-        sample_time1 += end - start
-    total = time() - total_start
-    return np.array(S)
 # def UniformSample_original_python(dataset):
 #     """
 #     the original impliment of BPR Sampling in LightGCN
@@ -109,9 +69,7 @@ def UniformSample_original_python(dataset, pair_type):
 #     """
 #     total_start = time()
 #     dataset : BasicDataset
-#     user_num = dataset.trainDataSize
-#     users = np.random.randint(0, dataset.n_users, user_num)
-#     allPos = dataset.allPos
+    
 #     S = []
 #     sample_time1 = 0.
 #     sample_time2 = 0.
@@ -134,6 +92,39 @@ def UniformSample_original_python(dataset, pair_type):
 #         sample_time1 += end - start
 #     total = time() - total_start
 #     return np.array(S)
+def UniformSample_original_python(dataset):
+    """
+    the original impliment of BPR Sampling in LightGCN
+    :return:
+        np.array
+    """
+    total_start = time()
+    dataset : BasicDataset
+    user_num = dataset.trainDataSize
+    users = np.random.randint(0, dataset.n_users, user_num)
+    allPos = dataset.allPos
+    S = []
+    sample_time1 = 0.
+    sample_time2 = 0.
+    for i, user in enumerate(users):
+        start = time()
+        posForUser = allPos[user]
+        if len(posForUser) == 0:
+            continue
+        sample_time2 += time() - start
+        posindex = np.random.randint(0, len(posForUser))
+        positem = posForUser[posindex]
+        while True:
+            negitem = np.random.randint(0, dataset.m_items)
+            if negitem in posForUser:
+                continue
+            else:
+                break
+        S.append([user, positem, negitem])
+        end = time()
+        sample_time1 += end - start
+    total = time() - total_start
+    return np.array(S)
 
 # ===================end samplers==========================
 # =====================utils====================================

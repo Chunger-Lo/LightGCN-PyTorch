@@ -315,52 +315,75 @@ class Loader(BasicDataset):
         if world.dataset == 'sc':
             # train_file = path + '/train.txt'
             # test_file = path + '/test.txt'
-            train_file = path + '/date='+ config['test_date'] +'/train.txt'
-            test_file = path + '/date='+ config['test_date'] + '/test.txt'
+            # user_item_train_file = path + '/date='+ config['test_date'] +'/train_user_item.txt'
+            user_item_train_file = path + '/fake' +'/train_user_item.txt'
+            user_item_test_file = path + '/fake' + '/test_user_item.txt'
+            user_subtag_train_file = path + '/fake' +'/train_user_subtag.txt'
+            user_subtag_test_file = path + '/fake' + '/test_user_subtag.txt'
+            item_subtag_train_file = path + '/fake' +'/train_item_subtag.txt'
+            # item_subtag_test_file = path + 'testcase' + '/test_item_subtag.txt'
         else:
-            train_file = path + '/train.txt'
-            test_file = path + '/test.txt'
-
-        print(f'Loaded {train_file}')
-        print(f'Loaded {test_file}')
+            print('wrong dataset')
         self.path = path
-        trainUniqueUsers, trainItem, trainUser, trainSubtag = [], [], [], []
-        testUniqueUsers, testItem, testUser, testSubtag = [], [], [], []
-        self.traindataSize = 0
-        self.testDataSize = 0
+        # trainUniqueUsers, trainItem, trainUser, trainSubtag = [], [], [], []
+        # testUniqueUsers, testItem, testUser, testSubtag = [], [], [], []
+
+        trainUniqueUsers, testUniqueUsers = [], []
+        # self.traindataSize = 0
+        # self.testDataSize = 0
         self.n_user = 0
-        self.n_train = 0
-        self.n_test = 0
         self.m_item = 0
         self.r_subtag = 0
+        #
+        self.traindataSize_user_item = 0
+        self.testdataSize_user_item = 0
+        self.traindataSize_user_subtag = 0
+        self.testdataSize_user_subtag = 0
+        self.traindataSize_item_subtag = 0
+        self.testdataSize_item_subtag = 0
 
         # user-item
-        with open(train_file) as f:
+        print(f'Loading {user_item_train_file}')
+        print(f'Loading {user_item_test_file}')
+        trainUser = []
+        trainItem = []
+        n_interactions_train = 0 #number of interactions
+        nuser_train = 0
+        with open(user_item_train_file) as f:
             for l in f.readlines():
-                self.n_user += 1
-                self.n_train += 1
+                # self.n_user += 1
                 if len(l) > 0:
                     l = l.strip('\n').split(' ')
                     items = [int(i) for i in l[1:]]
                     uid = int(l[0])
                     trainUniqueUsers.append(uid)
+                    ## create connected pairs
                     trainUser.extend([uid] * len(items))
                     trainItem.extend(items)
                     if len(items)>0:
                         self.m_item = max(self.m_item, max(items))
                     self.n_user = max(self.n_user, uid)
-                    self.traindataSize += len(items)
-                if world.mode == 'fastdebug':
-                    if self.n_train == 10000:
-                        break
+                    n_interactions_train += len(items)
+                # if world.mode == 'fastdebug':
+                #     if nuser_train == 10000:
+                #         break
+        # trainUser_user_item, trainUser_user_subtag = []
+        # trainItem_item_subtag, trainItem_user_item = []
+        # trainSubtag_user_subtag, trainSubtag_item_subtag = []
+        # testUser_user_item, testUser_user_subtag = []
+        # testItem_item_subtag, testItem_user_item = []
+        # testSubtag_user_subtag, testSubtag_item_subtag = []
         self.trainUniqueUsers = np.array(trainUniqueUsers)
-        self.trainUser = np.array(trainUser)
-        self.trainItem = np.array(trainItem)
-        self.trainSubtag = np.array(trainSubtag)
-
-        with open(test_file) as f:
+        self.trainUser_user_item = np.array(trainUser)
+        self.trainItem_user_item = np.array(trainItem)
+        self.traindataSize_user_item = n_interactions_train
+        testUser = []
+        testItem = []      
+        nuser_test = 0 
+        n_interactions_test = 0 #number of interactions
+        with open(user_item_test_file) as f:
             for l in f.readlines():
-                self.n_test += 1
+                nuser_test += 1
                 if len(l) > 0:
                     l = l.strip('\n').split(' ')
                     items = [int(i) for i in l[1:]]
@@ -370,55 +393,173 @@ class Loader(BasicDataset):
                     testItem.extend(items)
                     if len(items)>0:
                         self.m_item = max(self.m_item, max(items))
-                    # self.n_user = max(self.n_user, uid)
-                    self.testDataSize += len(items)
-                if world.mode == 'fastdebug':
-                    if self.n_test == 1024:
-                        break
-        self.m_item += 1
-        self.n_user += 1
+                    self.n_user = max(self.n_user, uid)
+                    n_interactions_test += len(items)
+                # if world.mode == 'fastdebug':
+                #     if nuser_test == 1024:
+                #         break
         self.testUniqueUsers = np.array(testUniqueUsers)
-        self.testUser = np.array(testUser)
-        self.testItem = np.array(testItem)
-        self.testSubtag = np.array(testSubtag)
-        
-        self.Graph = None
-        print(f"{self.trainDataSize} interactions for training")
-        print(f"{self.testDataSize} interactions for testing")
-        print(f"{self.n_train} number of users in train")
-        print(f"{self.n_test} number of users in test")
+        self.testUser_user_item = np.array(testUser)
+        self.testItem_user_item = np.array(testItem)
+        self.testdataSize_user_item = n_interactions_test
+
+        # user-subtag
+        trainUser = []
+        trainSubtag = []
+        nuser_train = 0
+        nuser_test = 0
+        n_interactions_train = 0 #number of interactions
+        with open(user_subtag_train_file) as f:
+            for l in f.readlines():
+                nuser_train += 1
+                if len(l) > 0:
+                    l = l.strip('\n').split(' ')
+                    subtags = [int(i) for i in l[1:]]
+                    uid = int(l[0])
+                    trainUniqueUsers.append(uid)
+                    trainUser.extend([uid] * len(subtags))
+                    trainSubtag.extend(subtags)
+                    if len(subtags)>0:
+                        self.r_subtag = max(self.r_subtag, max(subtags))
+                    # self.n_user = max(self.n_user, uid)
+                        n_interactions_train += len(subtags)
+                # if world.mode == 'fastdebug':
+                #     if nuser_train == 10000:
+                #         break
+        self.trainUser_user_subtag = np.array(trainUser)
+        self.trainSubtag_user_subtag = np.array(trainSubtag)
+        self.traindataSize_user_subtag = n_interactions_train
+
+        testUser = []
+        testSubtag = []  
+        n_interactions_test = 0      
+        with open(user_subtag_test_file) as f:
+            for l in f.readlines():
+                nuser_test += 1
+                # self.n_user += 1
+                # self.n_train += 1
+                if len(l) > 0:
+                    l = l.strip('\n').split(' ')
+                    subtags = [int(i) for i in l[1:]]
+                    uid = int(l[0])
+                    trainUniqueUsers.append(uid)
+                    testUser.extend([uid] * len(subtags))
+                    testSubtag.extend(subtags)
+                    if len(subtags)>0:
+                        self.r_subtag = max(self.r_subtag, max(subtags))
+                        n_interactions_test += len(subtags)
+                # if world.mode == 'fastdebug':
+                #     if nuser_test == 10000:
+                #         break
+        self.testUser_user_subtag = np.array(testUser)
+        self.testSubtag_user_subtag = np.array(testSubtag)
+        self.testdataSize_user_subtag = n_interactions_test
+        # item-subtag
+        trainItem = []
+        trainSubtag = []
+        n_interactions_train = 0
+        with open(item_subtag_train_file) as f:
+            for l in f.readlines():
+                # self.n_user += 1
+                # self.n_train += 1
+                if len(l) > 0:
+                    l = l.strip('\n').split(' ')
+                    subtags = [int(i) for i in l[1:]]
+                    item_id = int(l[0])
+                    # trainUniqueUsers.append(uid)
+                    trainItem.extend([item_id] * len(subtags))
+                    trainSubtag.extend(subtags)
+                    if len(subtags)>0:
+                        self.r_subtag = max(self.r_subtag, max(subtags))
+                    # self.n_user = max(self.n_user, uid)
+                        n_interactions_train += len(subtags)
+                # if world.mode == 'fastdebug':
+                #     if n_train == 10000:
+                #         break
+        self.trainItem_item_subtag = np.array(trainItem)
+        self.trainSubtag_item_subtag = np.array(trainSubtag)
+        self.traindataSize_item_subtag = n_interactions_train
+        ### Loaded and print results
+        self.n_user += 1
+        self.m_item += 1
+        self.r_subtag += 1
+
+        print(f"{self.traindataSize_user_item} interactions of user-item for training")
+        print(f"{self.testdataSize_user_item} interactions of user-item for testing")
+        print(f"{self.traindataSize_user_subtag} interactions of user-subtag for training")
+        print(f"{self.testdataSize_user_subtag} interactions of user-subtag for testing")
+        print(f"{self.traindataSize_item_subtag} interactions of item-subtag for training")
+        # print(f"{self.testdataSize_user_item} interactions of item-subtag for testing")
+        print(f"{nuser_train} number of users in train")
+        print(f"{nuser_test} number of users in test")
         print(f"{self.n_user} number of users")
         print(f"{self.m_item} number of items")
         print(f"{self.r_subtag} number of subtags")
-        print(f"{world.dataset} Sparsity : {(self.trainDataSize + self.testDataSize) / self.n_users / self.m_items}")
-
+        # print(f"{world.dataset} Sparsity : {(self.traindataSize_user_item + self.testdataSize_user_item) / self.n_users / self.m_items}")
+        ### Create grpah
+        self.Graph = None
         # (users,items), bipartite graph 
-        self.UserItemNet = csr_matrix((np.ones(len(self.trainUser)), (self.trainUser, self.trainItem)),
+        print(f'data: {np.ones(len(self.trainUser_user_item))}')
+        print(f'index row: {self.trainUser_user_item}') #max
+        print(f'index row max: {max(self.trainUser_user_item)}') #max
+        print(f'index col: {self.trainItem_user_item}')
+        print(f'shape of row: {self.n_user}') # shape 0 
+        print(f'shape of col: {self.m_item}')
+        self.UserItemNet = csr_matrix((np.ones(len(self.trainUser_user_item)), 
+                                        (self.trainUser_user_item, self.trainItem_user_item)),
                                       shape=(self.n_user, self.m_item))
         self.users_D = np.array(self.UserItemNet.sum(axis=1)).squeeze()
         self.users_D[self.users_D == 0.] = 1
         self.items_D = np.array(self.UserItemNet.sum(axis=0)).squeeze()
         self.items_D[self.items_D == 0.] = 1.
         # (users,subtags), bipartite graph
-        self.UserSubtagNet = csr_matrix((np.ones(len(self.trainUser)), (self.trainUser, self.trainItem)),
+        # self.trainUser_user_subtag = [x - 1 for x in self.trainUser_user_subtag]
+        print(f'data: {np.ones(len(self.trainUser_user_subtag))}')
+        print(f'index row: {self.trainUser_user_subtag}')
+        print(f'index row max: {max(self.trainUser_user_subtag)}') #max
+        print(f'index col: {self.trainSubtag_user_subtag}')
+        print(f'shape of row: {self.n_user}') # shape 0 
+        print(f'shape of col: {self.r_subtag}')
+        self.UserSubtagNet = csr_matrix((np.ones(len(self.trainUser_user_subtag)), 
+                                        (self.trainUser_user_subtag, self.trainSubtag_user_subtag)),
                                       shape=(self.n_user, self.r_subtag))
         # (items, subtags), bipartite graph
-        self.ItemSubtagNet = csr_matrix((np.ones(len(self.trainItem)), (self.trainUser, self.trainItem)),
+        print(f'data: {np.ones(len(self.trainItem_item_subtag))}')
+        print(f'index row: {self.trainItem_item_subtag}') #max
+        print(f'index row max: {max(self.trainItem_item_subtag)}') #max
+        print(f'index col: {self.trainSubtag_item_subtag}')
+        # print(f'row vec length: {len(self.trainItem_item_subtag)}')
+        # print(f'col vec length: {len(self.trainSubtag_item_subtag)}')
+        print(f'shape of row: {self.m_item}') # shape 0 
+        print(f'shape of col: {self.r_subtag}')
+        self.ItemSubtagNet = csr_matrix((np.ones(len(self.trainItem_item_subtag)), 
+                                        (self.trainItem_item_subtag, self.trainSubtag_item_subtag)),
                                       shape=(self.m_item, self.r_subtag))
-        self.subtag_D = np.array(self.ItemSubtagNet.sum(axis=0)).squeeze()
-        self.subtag_D[self.subtag_D == 0.] = 1.                              
-        print("UserItemNet: ")
-        print(UserItemNet)
-        print("UserSubtagNet: ")
-        print(UserSubtagNet)
-        print("ItemSubtagNet: ")
-        print(ItemSubtagNet)
+        ## examine
+        # R_user_item = self.UserItemNet.tolil()
+        # R_user_subtag = self.UserSubtagNet.tolil()
+        # R_item_subtag = self.ItemSubtagNet.tolil()
+        # print(f'R_user_item {R_user_item}')
+        # print(f'R_user_subtag {R_user_subtag}')
+        # print(f'R_item_subtag {R_item_subtag}')
+        print(f"{self.n_user} number of users")
+        print(f"{self.m_item} number of items")
+        print(f"{self.r_subtag} number of subtags")
+        # self.subtag_D = np.array(self.ItemSubtagNet.sum(axis=0)).squeeze()
+        # self.subtag_D[self.subtag_D == 0.] = 1.                              
+        # print("UserItemNet: ")
+        # print(UserItemNet)
+        # print("UserSubtagNet: ")
+        # print(UserSubtagNet)
+        # print("ItemSubtagNet: ")
+        # print(ItemSubtagNet)
         # pre-calculate
+        print('getting UserPosItems')
         self._allPos = self.getUserPosItems(list(range(self.n_user)))
-        self._allPos_subtag_byItem = self.getItemPosSubtags(list(range(self.m_item)))
-        self._allPos_subtag_byUser = self.getUserPosSubtags(list(range(self.n_user)))
-
-
+        # print('getting ItemPosSubtag')
+        # self._allPos_subtag_byItem = self.getItemPosSubtags(list(range(self.m_item)))
+        # print('getting UserPosSubtag')
+        # self._allPos_subtag_byUser = self.getUserPosSubtags(list(range(self.n_user)))
         self.__testDict = self.__build_test()
         print(f"{world.dataset} is ready to go")
 
@@ -430,9 +571,12 @@ class Loader(BasicDataset):
     def m_items(self):
         return self.m_item
     
+    # @property
+    # def trainDataSize(self):
+    #     return self.traindataSize
     @property
     def trainDataSize(self):
-        return self.traindataSize
+        return self.traindataSize_user_item
     
     @property
     def testDict(self):
@@ -490,12 +634,15 @@ class Loader(BasicDataset):
                 R_user_item = self.UserItemNet.tolil()
                 R_user_subtag = self.UserSubtagNet.tolil()
                 R_item_subtag = self.ItemSubtagNet.tolil()
+                print(f'shape of lil: {R_user_item.shape}')
+                print(f'shape of lil: {R_item_subtag.shape}')
                 adj_mat[:self.n_users, self.n_users:self.n_users+self.m_items] = R_user_item
                 adj_mat[self.n_users:self.n_users+self.m_items, :self.n_users] = R_user_item.T
-                adj_mat[self.n_users:self.n_users:self.n_users+self.m_items, self.n_users+self.m_items:] = R_item_subtag
-                adj_mat[self.n_users+self.m_items:, self.n_users:self.n_users:self.n_users+self.m_items] = R_item_subtag.T
-                adj_mat[:self.n_users, self.n_users:self.n_users+self.m_items:] = R_user_subtag
-                adj_mat[self.n_users:self.n_users+self.m_items:, :self.n_users] = R_user_subtag.T
+                # print(f'shape of target: {adj_mat[self.n_users:self.n_users+self.m_items, self.n_users+self.m_items:].shape}')
+                adj_mat[self.n_users:self.n_users+self.m_items, self.n_users+self.m_items:] = R_item_subtag
+                adj_mat[self.n_users+self.m_items:, self.n_users:self.n_users+self.m_items] = R_item_subtag.T
+                adj_mat[:self.n_users, self.n_users+self.m_items:] = R_user_subtag
+                adj_mat[self.n_users+self.m_items:, :self.n_users] = R_user_subtag.T
                 adj_mat = adj_mat.todok()
                 # adj_mat = adj_mat + sp.eye(adj_mat.shape[0])
                 
@@ -532,8 +679,9 @@ class Loader(BasicDataset):
             dict: {user: [items]}
         """
         test_data = {}
-        for i, item in enumerate(self.testItem):
-            user = self.testUser[i]
+        # for i, item in enumerate(self.testItem):
+        for i, item in enumerate(self.testItem_user_item):
+            user = self.testUser_user_item[i]
             if test_data.get(user):
                 test_data[user].append(item)
             else:

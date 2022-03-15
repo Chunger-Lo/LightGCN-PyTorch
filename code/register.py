@@ -21,6 +21,6 @@ print("using bpr loss")
 print('===========end===================')
 
 MODELS = {
-    'mf': model.PureMF,
+    # 'mf': model.PureMF,
     'lgn': model.LightGCN
 }
