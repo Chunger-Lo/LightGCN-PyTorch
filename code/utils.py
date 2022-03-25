@@ -100,13 +100,17 @@ def UniformSample_original_python(dataset):
     """
     total_start = time()
     dataset : BasicDataset
+    # user_num = dataset.trainDataSize
     user_num = dataset.trainDataSize
-    users = np.random.randint(0, dataset.n_users, user_num)
+    # print(f'dataset.n_users: {dataset.n_users}') #601331
+    # print(f'user_num: {user_num}') #18548
+    # users = np.random.randint(0, dataset.n_users, user_num)
     allPos = dataset.allPos
     S = []
     sample_time1 = 0.
     sample_time2 = 0.
-    for i, user in enumerate(users):
+    # for i, user in enumerate():
+    for user in range(dataset.n_users):
         start = time()
         posForUser = allPos[user]
         if len(posForUser) == 0:
@@ -252,6 +256,7 @@ def RecallPrecision_ATk(test_data, r, k):
     right_pred = r[:, :k].sum(1)
     precis_n = k
     recall_n = np.array([len(test_data[i]) for i in range(len(test_data))])
+    # print(f'recall_n: {recall_n}')
     recall = np.sum(right_pred/recall_n)
     precis = np.sum(right_pred)/precis_n
     return {'recall': recall, 'precision': precis}

@@ -39,9 +39,12 @@ if world.mode == 'fastdebug':
         try:
         # init tensorboard
             if world.tensorboard:
+                te_date = world.config["test_date"][-4:]
+                bsize = str(world.config['test_u_batch_size'])
                 tensor_log_path = join(world.BOARD_PATH, 
-                                                time.strftime("%m%d") + "-" + "te" + world.config["test_date"]+"_" + world.comment+\
-                                                    '_' + 'bpr' +str(_bpr_size))
+                                                # time.strftime("%m%d") + "-" + "te" + world.config["test_date"]+"_" + world.comment+\
+                                                #     '_' + 'bpr' +str(_bpr_size)+ 'test_batchsize' + str(testbatch)
+                                                f'{time.strftime("%m%d")}-te{te_date}_{world.comment}_bpr{str(_bpr_size)}_te_bsize{bsize}')
                 w : SummaryWriter = SummaryWriter(tensor_log_path)
                 world.cprint(f"Write to {tensor_log_path}")
             else:
@@ -81,7 +84,8 @@ if world.mode == 'train':
                 start = time.time()
                 output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, _bpr_size, epoch, neg_k=Neg_k,w=w)
                 print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-                if True:
+                # if True:
+                if epoch%5 == 0:
                     cprint("[TEST]")
                     Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
             torch.save(Recmodel.state_dict(), weight_file)

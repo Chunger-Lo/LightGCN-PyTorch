@@ -316,11 +316,21 @@ class Loader(BasicDataset):
             # train_file = path + '/train.txt'
             # test_file = path + '/test.txt'
             # user_item_train_file = path + '/date='+ config['test_date'] +'/train_user_item.txt'
-            user_item_train_file = path + '/fake' +'/train_user_item.txt'
-            user_item_test_file = path + '/fake' + '/test_user_item.txt'
-            user_subtag_train_file = path + '/fake' +'/train_user_subtag.txt'
-            user_subtag_test_file = path + '/fake' + '/test_user_subtag.txt'
-            item_subtag_train_file = path + '/fake' +'/train_item_subtag.txt'
+            # dir_name = '/fake'
+            dir_name = config['test_date']
+            # user_item_train_file = path + '/date='+ config['test_date']  +'/train_user_item.txt'
+            # user_item_test_file = path + '/date='+ config['test_date']  + '/test_user_item.txt'
+            user_item_train_file = path + '/date='+ config['test_date']  +'/train_user_item_retain.txt'
+            user_item_test_file = path + '/date='+ config['test_date']  + '/test_user_item_retain.txt'
+            user_subtag_train_file = path + '/date='+ config['test_date']  +'/user_subtag.txt'
+            user_subtag_test_file = path + '/date='+ config['test_date']  + '/user_subtag.txt'
+            item_subtag_train_file = path +'/date='+ config['test_date']  +'/item_subtag.txt'
+            item_subtag_test_file = path + '/date='+ config['test_date']  + '/item_subtag.txt'
+            # user_item_train_file = path + '/fake' +'/train_user_item.txt'
+            # user_item_test_file = path + '/fake' + '/test_user_item.txt'
+            # user_subtag_train_file = path + '/fake' +'/train_user_subtag.txt'
+            # user_subtag_test_file = path + '/fake' + '/test_user_subtag.txt'
+            # item_subtag_train_file = path + '/fake' +'/train_item_subtag.txt'
             # item_subtag_test_file = path + 'testcase' + '/test_item_subtag.txt'
         else:
             print('wrong dataset')
@@ -377,6 +387,7 @@ class Loader(BasicDataset):
         self.trainUser_user_item = np.array(trainUser)
         self.trainItem_user_item = np.array(trainItem)
         self.traindataSize_user_item = n_interactions_train
+        self.__testDict = {}
         testUser = []
         testItem = []      
         nuser_test = 0 
@@ -388,6 +399,7 @@ class Loader(BasicDataset):
                     l = l.strip('\n').split(' ')
                     items = [int(i) for i in l[1:]]
                     uid = int(l[0])
+                    self.__testDict[uid] = items ## add
                     testUniqueUsers.append(uid)
                     testUser.extend([uid] * len(items))
                     testItem.extend(items)
@@ -402,12 +414,12 @@ class Loader(BasicDataset):
         self.testUser_user_item = np.array(testUser)
         self.testItem_user_item = np.array(testItem)
         self.testdataSize_user_item = n_interactions_test
-
+         
         # user-subtag
         trainUser = []
         trainSubtag = []
         nuser_train = 0
-        nuser_test = 0
+        # nuser_test = 0
         n_interactions_train = 0 #number of interactions
         with open(user_subtag_train_file) as f:
             for l in f.readlines():
@@ -435,7 +447,7 @@ class Loader(BasicDataset):
         n_interactions_test = 0      
         with open(user_subtag_test_file) as f:
             for l in f.readlines():
-                nuser_test += 1
+                # nuser_test += 1
                 # self.n_user += 1
                 # self.n_train += 1
                 if len(l) > 0:
@@ -560,7 +572,7 @@ class Loader(BasicDataset):
         # self._allPos_subtag_byItem = self.getItemPosSubtags(list(range(self.m_item)))
         # print('getting UserPosSubtag')
         # self._allPos_subtag_byUser = self.getUserPosSubtags(list(range(self.n_user)))
-        self.__testDict = self.__build_test()
+        # self.__testDict = self.__build_test()
         print(f"{world.dataset} is ready to go")
 
     @property
@@ -570,7 +582,6 @@ class Loader(BasicDataset):
     @property
     def m_items(self):
         return self.m_item
-    
     # @property
     # def trainDataSize(self):
     #     return self.traindataSize
@@ -681,11 +692,21 @@ class Loader(BasicDataset):
         test_data = {}
         # for i, item in enumerate(self.testItem):
         for i, item in enumerate(self.testItem_user_item):
+            print(f'building {i}th user with item: {item}')
             user = self.testUser_user_item[i]
             if test_data.get(user):
                 test_data[user].append(item)
             else:
                 test_data[user] = [item]
+        print(len(list(test_data.keys())))
+
+        # test_data = {}
+        # for i, user in enumerate(self.testUser_user_item):
+        #     item =  self.testItem_user_item[i]
+        #     if test_data.get(user):
+        #         test_data[user].append(item)
+        #     else:
+        #         test_data[user] = [item]
         return test_data
 
     def getUserItemFeedback(self, users, items):
@@ -705,16 +726,16 @@ class Loader(BasicDataset):
         for user in users:
             posItems.append(self.UserItemNet[user].nonzero()[1])
         return posItems
-    def getUserPosSubtags(self, users):
-        posSubtags = []
-        for user in users:
-            posSubtags.append(self.UserSubtagNet[user].nonzero()[1])
-        return posSubtags
-    def getItemPosSubtags(self, users):
-        posSubtags = []
-        for item in items:
-            posSubtags.append(self.ItemSubtagNet[item].nonzero()[1])
-        return posSubtags
+    # def getUserPosSubtags(self, users):
+    #     posSubtags = []
+    #     for user in users:
+    #         posSubtags.append(self.UserSubtagNet[user].nonzero()[1])
+    #     return posSubtags
+    # def getItemPosSubtags(self, users):
+    #     posSubtags = []
+    #     for item in items:
+    #         posSubtags.append(self.ItemSubtagNet[item].nonzero()[1])
+    #     return posSubtags
 
     # def getUserNegItems(self, users):
     #     negItems = []
