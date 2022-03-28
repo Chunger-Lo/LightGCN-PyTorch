@@ -254,8 +254,8 @@ def RecallPrecision_ATk(test_data, r, k):
     k : top-k
     """
     right_pred = r[:, :k].sum(1)
-    precis_n = k
-    recall_n = np.array([len(test_data[i]) for i in range(len(test_data))])
+    precis_n = k #number of rec
+    recall_n = np.array([len(test_data[i]) for i in range(len(test_data))]) #number of positive items
     # print(f'recall_n: {recall_n}')
     recall = np.sum(right_pred/recall_n)
     precis = np.sum(right_pred)/precis_n
