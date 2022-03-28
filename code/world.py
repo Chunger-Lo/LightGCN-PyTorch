@@ -63,9 +63,6 @@ if dataset not in all_dataset:
 if model_name not in all_models:
     raise NotImplementedError(f"Haven't supported {model_name} yet!, try {all_models}")
 
-
-
-
 TRAIN_epochs = args.epochs
 LOAD = args.load
 PATH = args.path
@@ -76,7 +73,6 @@ mode = args.mode
 # let pandas shut up
 from warnings import simplefilter
 simplefilter(action="ignore", category=FutureWarning)
-
 
 
 def cprint(words : str):

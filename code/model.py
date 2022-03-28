@@ -35,51 +35,6 @@ class PairWiseModel(BasicModel):
             (log-loss, l2-loss)
         """
         raise NotImplementedError
-    
-class PureMF(BasicModel):
-    def __init__(self, 
-                 config:dict, 
-                 dataset:BasicDataset):
-        super(PureMF, self).__init__()
-        self.num_users  = dataset.n_users
-        self.num_items  = dataset.m_items
-        self.latent_dim = config['latent_dim_rec']
-        self.f = nn.Sigmoid()
-        self.__init_weight()
-        
-    def __init_weight(self):
-        self.embedding_user = torch.nn.Embedding(
-            num_embeddings=self.num_users, embedding_dim=self.latent_dim)
-        self.embedding_item = torch.nn.Embedding(
-            num_embeddings=self.num_items, embedding_dim=self.latent_dim)
-        print("using Normal distribution N(0,1) initialization for PureMF")
-        
-    def getUsersRating(self, users):
-        users = users.long()
-        users_emb = self.embedding_user(users)
-        items_emb = self.embedding_item.weight
-        scores = torch.matmul(users_emb, items_emb.t())
-        return self.f(scores)
-    
-    def bpr_loss(self, users, pos, neg):
-        users_emb = self.embedding_user(users.long())
-        pos_emb   = self.embedding_item(pos.long())
-        neg_emb   = self.embedding_item(neg.long())
-        pos_scores= torch.sum(users_emb*pos_emb, dim=1)
-        neg_scores= torch.sum(users_emb*neg_emb, dim=1)
-        loss = torch.mean(nn.functional.softplus(neg_scores - pos_scores))
-        reg_loss = (1/2)*(users_emb.norm(2).pow(2) + 
-                          pos_emb.norm(2).pow(2) + 
-                          neg_emb.norm(2).pow(2))/float(len(users))
-        return loss, reg_loss
-        
-    def forward(self, users, items):
-        users = users.long()
-        items = items.long()
-        users_emb = self.embedding_user(users)
-        items_emb = self.embedding_item(items)
-        scores = torch.sum(users_emb*items_emb, dim=1)
-        return self.f(scores)
 
 class LightGCN(BasicModel):
     def __init__(self, 
@@ -93,8 +48,10 @@ class LightGCN(BasicModel):
     def __init_weight(self):
         self.num_users  = self.dataset.n_users
         self.num_items  = self.dataset.m_items
+        self.num_subtags  = self.dataset.r_subtag
         cprint(f'number of users: {self.num_users}')
         cprint(f'number of items: {self.num_items}')
+        cprint(f'number of items: {self.num_subtags}')
         self.latent_dim = self.config['latent_dim_rec']
         self.n_layers = self.config['lightGCN_n_layers']
         self.keep_prob = self.config['keep_prob']
@@ -103,6 +60,8 @@ class LightGCN(BasicModel):
             num_embeddings=self.num_users, embedding_dim=self.latent_dim)
         self.embedding_item = torch.nn.Embedding(
             num_embeddings=self.num_items, embedding_dim=self.latent_dim)
+        self.embedding_subtag = torch.nn.Embedding(
+            num_embeddings=self.num_subtags, embedding_dim=self.latent_dim)
         if self.config['pretrain'] == 0:
 #             nn.init.xavier_uniform_(self.embedding_user.weight, gain=1)
 #             nn.init.xavier_uniform_(self.embedding_item.weight, gain=1)
@@ -110,10 +69,12 @@ class LightGCN(BasicModel):
 # random normal init seems to be a better choice when lightGCN actually don't use any non-linear activation function
             nn.init.normal_(self.embedding_user.weight, std=0.1)
             nn.init.normal_(self.embedding_item.weight, std=0.1)
+            nn.init.normal_(self.embedding_subtag.weight, std=0.1)
             world.cprint('use NORMAL distribution initilizer')
         else:
             self.embedding_user.weight.data.copy_(torch.from_numpy(self.config['user_emb']))
             self.embedding_item.weight.data.copy_(torch.from_numpy(self.config['item_emb']))
+            self.embedding_subtag.weight.data.copy_(torch.from_numpy(self.config['subtag_emb']))
             print('use pretarined data')
         self.f = nn.Sigmoid()
         self.Graph = self.dataset.getSparseGraph()
@@ -146,7 +107,8 @@ class LightGCN(BasicModel):
         """       
         users_emb = self.embedding_user.weight
         items_emb = self.embedding_item.weight
-        all_emb = torch.cat([users_emb, items_emb])
+        subtags_emb = self.embedding_subtag.weight
+        all_emb = torch.cat([users_emb, items_emb, subtags_emb])
         #   torch.split(all_emb , [self.num_users, self.num_items])
         embs = [all_emb]
         if self.config['dropout']:
@@ -174,7 +136,7 @@ class LightGCN(BasicModel):
         embs = torch.stack(embs, dim=1)
         #print(embs.size())
         light_out = torch.mean(embs, dim=1) ## Final embedding
-        users, items = torch.split(light_out, [self.num_users, self.num_items])
+        users, items, subtags = torch.split(light_out, [self.num_users, self.num_items, self.num_subtags])
         return users, items
     
     def getUsersRating(self, users):
@@ -196,6 +158,7 @@ class LightGCN(BasicModel):
         return users_emb, pos_emb, neg_emb, users_emb_ego, pos_emb_ego, neg_emb_ego
     
     def bpr_loss(self, users, pos, neg):
+        ## user-item
         (users_emb, pos_emb, neg_emb, 
         userEmb0,  posEmb0, negEmb0) = self.getEmbedding(users.long(), pos.long(), neg.long())
         reg_loss = (1/2)*(userEmb0.norm(2).pow(2) + 
@@ -207,6 +170,18 @@ class LightGCN(BasicModel):
         neg_scores = torch.sum(neg_scores, dim=1)
         
         loss = torch.mean(torch.nn.functional.softplus(neg_scores - pos_scores))
+        ## user-subtag
+        # (users_emb, pos_emb, neg_emb, 
+        # userEmb0,  posEmb0, negEmb0) = self.getEmbedding(users.long(), pos.long(), neg.long())
+        # reg_loss = (1/2)*(userEmb0.norm(2).pow(2) + 
+        #                  posEmb0.norm(2).pow(2)  +
+        #                  negEmb0.norm(2).pow(2))/float(len(users))
+        # pos_scores = torch.mul(users_emb, pos_emb)
+        # pos_scores = torch.sum(pos_scores, dim=1)
+        # neg_scores = torch.mul(users_emb, neg_emb)
+        # neg_scores = torch.sum(neg_scores, dim=1)
+        
+        # loss = torch.mean(torch.nn.functional.softplus(neg_scores - pos_scores))
         
         return loss, reg_loss
        

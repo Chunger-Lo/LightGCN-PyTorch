@@ -33,14 +33,19 @@ def BPR_train_original(dataset, recommend_model, loss_class, bpr_size, epoch, ne
     users = torch.Tensor(S[:, 0]).long()
     posItems = torch.Tensor(S[:, 1]).long()
     negItems = torch.Tensor(S[:, 2]).long()
-
+    
     users = users.to(world.device)
     posItems = posItems.to(world.device)
     negItems = negItems.to(world.device)
     users, posItems, negItems = utils.shuffle(users, posItems, negItems)
+    # print(f'users: {users}')
+    # print(f'posItems: {posItems}')
+    # print(f'negItems: {negItems}')
+    print(f'Size of users (for loss): {users.size()}')
     # total_batch = len(users) // world.config['bpr_batch_size'] + 1
     total_batch = len(users) // bpr_size + 1
     aver_loss = 0. 
+    print(f'---calculating {epoch}th epoch')
     for (batch_i,
          (batch_users,
           batch_pos,
@@ -49,6 +54,7 @@ def BPR_train_original(dataset, recommend_model, loss_class, bpr_size, epoch, ne
                                                    negItems,
                                                 #    batch_size=world.config['bpr_batch_size'])):
                                                    batch_size = bpr_size)):
+        print(f'---calculating {epoch}th epoch-{batch_i+1}th / {total_batch} batch---')
         cri = bpr.stageOne(batch_users, batch_pos, batch_neg)
         aver_loss += cri
         # if world.tensorboard:
@@ -91,6 +97,8 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
                }
     with torch.no_grad():
         users = list(testDict.keys())
+        # print(f'users: {users}')
+        print(f'length of users: {len(users)}')
         try:
             assert u_batch_size <= len(users) / 10
         except AssertionError:
@@ -157,7 +165,7 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
         results['ndcg'] /= float(len(users))
         results['f1_score'] = 2*(results['precision'] * results['recall']) / ((results['precision'] + results['recall']))
         # results['auc'] = np.mean(auc_record)
-        print(f'testing #{epoch} epoch and log')
+        # print(f'testing #{epoch+1} epoch and log')
         if world.tensorboard:
             w.add_scalars(f'Test/Recall@{world.topks}',
                           {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, epoch)

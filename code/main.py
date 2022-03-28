@@ -39,9 +39,9 @@ if world.mode == 'fastdebug':
         try:
         # init tensorboard
             if world.tensorboard:
-                tensor_log_path = join(world.BOARD_PATH, 
-                                                time.strftime("%m%d") + "-" + "te" + world.config["test_date"]+"_" + world.comment+\
-                                                    '_' + 'bpr' +str(_bpr_size))
+                date = time.strftime("%m%d")
+                te_date = world.config["test_date"][-4:]
+                tensor_log_path = join(world.BOARD_PATH, f'{date}-te{te_date}_fastdebug')
                 w : SummaryWriter = SummaryWriter(tensor_log_path)
                 world.cprint(f"Write to {tensor_log_path}")
             else:
@@ -68,9 +68,9 @@ if world.mode == 'train':
         # init tensorboard
             if world.tensorboard:
                 date = time.strftime("%m%d")
-                my_comment = date + "-" + "te" + world.config["test_date"]+"_" + world.comment+\
-                            '_' + 'bpr' +str(_bpr_size)
-                MyComment = f'{date}_{world.config["test_date"]}_{world.comment}_bpr'
+                # my_comment = date + "-" + "te" + world.config["test_date"]+"_" + world.comment+\
+                #             '_' + 'bpr' +str(_bpr_size)
+                my_comment = f'{date}-te{te_date}_{world.comment}_bpr{str(_bpr_size)}_te_bsize{bsize}'
                 tensor_log_path = join(world.BOARD_PATH, my_comment)
                 w : SummaryWriter = SummaryWriter(tensor_log_path)
                 world.cprint(f"Write to {tensor_log_path}")
@@ -81,7 +81,8 @@ if world.mode == 'train':
                 start = time.time()
                 output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, _bpr_size, epoch, neg_k=Neg_k,w=w)
                 print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-                if True:
+                # if True:
+                if epoch%5 == 0:
                     cprint("[TEST]")
                     Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
             torch.save(Recmodel.state_dict(), weight_file)
@@ -92,43 +93,6 @@ if world.mode == 'train':
         finally:
             if world.tensorboard:
                 w.close()
-# if world.mode == 'train':
-    # try:
-    #     for epoch in range(world.TRAIN_epochs):
-    #         start = time.time()
-    #         output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, epoch, neg_k=Neg_k,w=w)
-    #         print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-    #         if epoch %10 == 0:
-    #             cprint("[TEST]")
-    #             Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
-    #         torch.save(Recmodel.state_dict(), weight_file)
-    # finally:
-    #     if world.tensorboard:
-    #         w.close()
-# try:
-#     for epoch in range(world.TRAIN_epochs):
-#         start = time.time()
-#         output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, epoch, neg_k=Neg_k,w=w)
-#         print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-#         if (epoch+1) %10 == 0:
-#         # if True:
-#             cprint("[TEST]")
-#             Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
-#         torch.save(Recmodel.state_dict(), weight_file)
-# try:
-#     for _bpr_size in world.config['bpr_batch_size']:
-#         for epoch in range(world.TRAIN_epochs):
-#             start = time.time()
-#             output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, _bpr_size, epoch, neg_k=Neg_k,w=w)
-#             print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-#             if (epoch+1) %10 == 0:
-#             # if True:
-#                 cprint("[TEST]")
-#                 Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
-#             torch.save(Recmodel.state_dict(), weight_file)
-# finally:
-#     if world.tensorboard:
-#         w.close()
 
 end = time.time()
 time_elasped = end - start
