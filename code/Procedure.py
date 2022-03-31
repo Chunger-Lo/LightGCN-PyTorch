@@ -45,7 +45,7 @@ def BPR_train_original(dataset, recommend_model, loss_class, bpr_size, epoch, ne
     # total_batch = len(users) // world.config['bpr_batch_size'] + 1
     total_batch = len(users) // bpr_size + 1
     aver_loss = 0. 
-    print(f'---calculating {epoch}th epoch')
+    # print(f'---calculating {epoch}th epoch')
     for (batch_i,
          (batch_users,
           batch_pos,
@@ -54,7 +54,7 @@ def BPR_train_original(dataset, recommend_model, loss_class, bpr_size, epoch, ne
                                                    negItems,
                                                 #    batch_size=world.config['bpr_batch_size'])):
                                                    batch_size = bpr_size)):
-        print(f'---calculating {epoch}th epoch-{batch_i+1}th / {total_batch} batch---')
+        # print(f'---calculating {epoch}th epoch-{batch_i+1}th / {total_batch} batch---')
         cri = bpr.stageOne(batch_users, batch_pos, batch_neg)
         aver_loss += cri
         # if world.tensorboard:
@@ -81,10 +81,13 @@ def test_one_batch(X):
             'precision':np.array(pre), 
             'ndcg':np.array(ndcg)}
 
-def Test(dataset, Recmodel, epoch, w=None, multicore=0):
+def Test(dataset, Recmodel, w=None, multicore=0, test_type = 'all'):
     u_batch_size = world.config['test_u_batch_size']
     dataset: utils.BasicDataset
-    testDict: dict = dataset.testDict
+    if test_type == 'all':
+        testDict: dict = dataset.testDict
+    elif test_type == 'pos_only':
+        testDict: dict = dataset.testDict_pos_only
     Recmodel: model.LightGCN
     # eval mode with no dropout
     Recmodel = Recmodel.eval()
@@ -132,19 +135,11 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
             rating[exclude_index, exclude_items] = -(1<<10)
             _, rating_K = torch.topk(rating, k=max_K)
             rating = rating.cpu().numpy()
-            # aucs = [ 
-            #         utils.AUC(rating[i],
-            #                   dataset, 
-            #                   test_data) for i, test_data in enumerate(groundTrue)
-            #     ]
-            # auc_record.extend(aucs)
             del rating
             users_list.append(batch_users)
             rating_list.append(rating_K.cpu())
             groundTrue_list.append(groundTrue)
             count += 1
-        # print(f'length of users_list = {len(users_list)}')
-        # print(f'total_batch = {total_batch}')
 
         check = (total_batch == len(users_list)+1) or (total_batch == len(users_list))
         assert check == 1
@@ -167,14 +162,22 @@ def Test(dataset, Recmodel, epoch, w=None, multicore=0):
         # results['auc'] = np.mean(auc_record)
         # print(f'testing #{epoch+1} epoch and log')
         if world.tensorboard:
+            # w.add_scalars(f'Test/Recall@{world.topks}',
+            #               {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, epoch)
+            # w.add_scalars(f'Test/Precision@{world.topks}',
+            #               {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, epoch)
+            # w.add_scalars(f'Test/NDCG@{world.topks}',
+            #               {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, epoch)
+            # w.add_scalars(f'Test/F1-score@{world.topks}',
+            #               {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, epoch)
             w.add_scalars(f'Test/Recall@{world.topks}',
-                          {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, epoch)
+                          {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, 1)
             w.add_scalars(f'Test/Precision@{world.topks}',
-                          {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, epoch)
+                          {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, 1)
             w.add_scalars(f'Test/NDCG@{world.topks}',
-                          {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, epoch)
+                          {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, 1)
             w.add_scalars(f'Test/F1-score@{world.topks}',
-                          {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, epoch)
+                          {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, 1)
         if multicore == 1:
             pool.close()
         # print(results)

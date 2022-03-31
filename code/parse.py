@@ -1,12 +1,4 @@
-'''
-Created on Mar 1, 2020
-Pytorch Implementation of LightGCN in
-Xiangnan He et al. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation
-
-@author: Jianbai Ye (gusye@mail.ustc.edu.cn)
-'''
 import argparse
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Go lightGCN")
@@ -36,6 +28,8 @@ def parse_args():
                         help="@k test list")
     parser.add_argument('-tensorboard', type=int,default=1,
                         help="enable tensorboard")
+    parser.add_argument('-use_gpu', type=int,default=1, help = 'use gpu or not')
+    parser.add_argument('-negK', type=str,default="1", help = 'negative sample ratio')
     parser.add_argument('-comment', type=str,default="")
     parser.add_argument('-load', type=int,default=0)
     parser.add_argument('-epochs', type=int,default=1)

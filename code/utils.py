@@ -11,7 +11,8 @@ from torch import nn, optim
 import numpy as np
 from torch import log
 from dataloader import BasicDataset
-from time import time
+# from time import time
+import time
 from model import LightGCN
 from model import PairWiseModel
 from sklearn.metrics import roc_auc_score
@@ -53,7 +54,7 @@ class BPRLoss:
 def UniformSample_original(dataset, neg_ratio = 1):
     dataset : BasicDataset
     allPos = dataset.allPos
-    start = time()
+    start = time.time()
     if sample_ext:
         S = sampling.sample_negative(dataset.n_users, dataset.m_items,
                                      dataset.trainDataSize, allPos, neg_ratio)
@@ -61,44 +62,13 @@ def UniformSample_original(dataset, neg_ratio = 1):
         S = UniformSample_original_python(dataset)
     return S
 
-# def UniformSample_original_python(dataset):
-#     """
-#     the original impliment of BPR Sampling in LightGCN
-#     :return:
-#         np.array
-#     """
-#     total_start = time()
-#     dataset : BasicDataset
-    
-#     S = []
-#     sample_time1 = 0.
-#     sample_time2 = 0.
-#     for i, user in enumerate(users):
-#         start = time()
-#         posForUser = allPos[user]
-#         if len(posForUser) == 0:
-#             continue
-#         sample_time2 += time() - start
-#         posindex = np.random.randint(0, len(posForUser))
-#         positem = posForUser[posindex]
-#         while True:
-#             negitem = np.random.randint(0, dataset.m_items)
-#             if negitem in posForUser:
-#                 continue
-#             else:
-#                 break
-#         S.append([user, positem, negitem])
-#         end = time()
-#         sample_time1 += end - start
-#     total = time() - total_start
-#     return np.array(S)
 def UniformSample_original_python(dataset):
     """
     the original impliment of BPR Sampling in LightGCN
     :return:
         np.array
     """
-    total_start = time()
+    total_start = time.time()
     dataset : BasicDataset
     # user_num = dataset.trainDataSize
     user_num = dataset.trainDataSize
@@ -111,11 +81,11 @@ def UniformSample_original_python(dataset):
     sample_time2 = 0.
     # for i, user in enumerate():
     for user in range(dataset.n_users):
-        start = time()
+        start = time.time()
         posForUser = allPos[user]
         if len(posForUser) == 0:
             continue
-        sample_time2 += time() - start
+        sample_time2 += time.time() - start
         posindex = np.random.randint(0, len(posForUser))
         positem = posForUser[posindex]
         while True:
@@ -125,9 +95,9 @@ def UniformSample_original_python(dataset):
             else:
                 break
         S.append([user, positem, negitem])
-        end = time()
+        end = time.time()
         sample_time1 += end - start
-    total = time() - total_start
+    total = time.time() - total_start
     return np.array(S)
 
 # ===================end samplers==========================
@@ -141,12 +111,10 @@ def set_seed(seed):
     torch.manual_seed(seed)
 
 def getFileName():
-    if world.model_name == 'mf':
-        file = f"mf-{world.dataset}-{world.config['latent_dim_rec']}.pth.tar"
-    elif world.model_name == 'lgn':
-        # file = f"lgn-{world.dataset}-{world.config['lightGCN_n_layers']}-{world.config['latent_dim_rec']}.pth.tar"
-        file = f"lgn-{world.dataset}-{world.config['test_date']}-{world.config['lightGCN_n_layers']}-{world.config['latent_dim_rec']}.pth.tar"
-    return os.path.join(world.FILE_PATH,file)
+    date = time.strftime("%m%d")[-4:]
+    te_date = world.config["test_date"][-4:]
+    filename = f'{date}-te{te_date}-{world.comment}.pth.tar'
+    return os.path.join(world.FILE_PATH,filename)
 
 def minibatch(*tensors, **kwargs):
 

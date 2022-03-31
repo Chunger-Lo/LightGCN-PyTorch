@@ -32,9 +32,6 @@ if not os.path.exists(BOARD_PATH):
 
 
 config = {}
-all_dataset = ['lastfm', 'gowalla', 'yelp2018', 'amazon-book', 'sc']
-all_models  = ['mf', 'lgn']
-# config['batch_size'] = 4096
 config['bpr_batch_size'] = args.bpr_batch
 config['latent_dim_rec'] = args.recdim
 config['lightGCN_n_layers']= args.layer
@@ -46,22 +43,22 @@ config['multicore'] = args.multicore
 config['lr'] = args.lr
 config['decay'] = args.decay
 config['pretrain'] = args.pretrain
+config['negK'] = args.negK
 config['A_split'] = False
 config['bigdata'] = False
-print(args.test_date)
 config['test_date'] = args.test_date
-
-GPU = torch.cuda.is_available()
+config['use_GPU'] = args.use_gpu
+GPU = torch.cuda.is_available() and bool(config['use_GPU'])
 device = torch.device('cuda' if GPU else "cpu")
 CORES = multiprocessing.cpu_count() // 2
 seed = args.seed
 
 dataset = args.dataset
 model_name = args.model
-if dataset not in all_dataset:
-    raise NotImplementedError(f"Haven't supported {dataset} yet!, try {all_dataset}")
-if model_name not in all_models:
-    raise NotImplementedError(f"Haven't supported {model_name} yet!, try {all_models}")
+# if dataset not in all_dataset:
+#     raise NotImplementedError(f"Haven't supported {dataset} yet!, try {all_dataset}")
+# if model_name not in all_models:
+#     raise NotImplementedError(f"Haven't supported {model_name} yet!, try {all_models}")
 
 TRAIN_epochs = args.epochs
 LOAD = args.load

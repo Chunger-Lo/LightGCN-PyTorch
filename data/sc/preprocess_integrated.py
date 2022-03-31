@@ -58,7 +58,7 @@ item_subtag.item_id = le_item.transform(item_subtag.item_id)
 
 
 # ## get item-subtag
-mapping_df = pd.read_excel('subtag.xlsx', sheet_name = 'mapping')
+mapping_df = pd.read_excel('subtag_map.xlsx', sheet_name = 'mapping')
 available_items = mapping_df.subtag_03.unique()
 item_subtag.subtag_eng_desc = item_subtag.subtag_eng_desc.str[3:]
 item_subtag = item_subtag[item_subtag.subtag_eng_desc.isin(available_items)]
