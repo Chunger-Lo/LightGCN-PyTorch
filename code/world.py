@@ -48,11 +48,12 @@ config['A_split'] = False
 config['bigdata'] = False
 config['test_date'] = args.test_date
 config['use_GPU'] = args.use_gpu
+
 GPU = torch.cuda.is_available() and bool(config['use_GPU'])
 device = torch.device('cuda' if GPU else "cpu")
 CORES = multiprocessing.cpu_count() // 2
 seed = args.seed
-
+mode = args.mode
 dataset = args.dataset
 model_name = args.model
 # if dataset not in all_dataset:
@@ -66,7 +67,7 @@ PATH = args.path
 topks = eval(args.topks)
 tensorboard = args.tensorboard
 comment = args.comment
-mode = args.mode
+
 # let pandas shut up
 from warnings import simplefilter
 simplefilter(action="ignore", category=FutureWarning)

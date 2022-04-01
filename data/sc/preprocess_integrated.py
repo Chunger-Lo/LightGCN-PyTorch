@@ -36,10 +36,6 @@ def export_file(date, pairs_dict, file_name):
         counts += 1
     print(counts)
     file.close()
-
-#test_date = '20211226'
-
-# context = pd.read_csv('..//data/preprocessed//context_1217_1230.csv')
 context_train = pd.read_csv(f'/home/jovyan/df-smart-channel/graph/data/preprocessed/date={args.test_date}/context_train.csv')
 context_test = pd.read_csv(f'/home/jovyan/df-smart-channel/graph/data/preprocessed/date={args.test_date}/context_test.csv')
 user_subtag = pd.read_csv(f'/home/jovyan/df-smart-channel/graph/data/preprocessed/date={args.test_date}/user_subtag.csv')

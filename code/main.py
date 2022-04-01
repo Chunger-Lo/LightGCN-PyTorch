@@ -27,7 +27,7 @@ Recmodel = Recmodel.to(world.device)
 bpr = utils.BPRLoss(Recmodel, world.config)
 
 weight_filename = utils.getFileName()
-print(f"load or save to {weight_filename}")
+cprint(f"load or save to {weight_filename}")
 
 if world.mode == 'fastdebug':
     
@@ -39,17 +39,18 @@ if world.mode == 'fastdebug':
                 te_date = world.config["test_date"][-4:]
                 tensor_log_path = join(world.BOARD_PATH, f'{date}-te{te_date}_fastdebug')
                 w : SummaryWriter = SummaryWriter(tensor_log_path)
-                world.cprint(f"Write to {tensor_log_path}")
+                cprint(f"Write to: {tensor_log_path}")
             else:
                 w = None
-                world.cprint("not enable tensorflowboard")
+                cprint("not enable tensorflowboard")
             for epoch in [1]:
                 start = time.time()
                 output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, _bpr_size, epoch, neg_k= world.config['negK'],w=w)
                 print(f'EPOCH[1] {output_information}')
                 if True:
-                    cprint("[TEST]")
-                    Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
+                    cprint("[Validation]")
+                    Procedure.Test(dataset, Recmodel, w, multicore = world.config['multicore'])
+            print(f'state_dict:  {Recmodel.state_dict()}')
             torch.save(Recmodel.state_dict(), weight_filename)
             end = time.time()
             time_elasped = end - start
@@ -77,9 +78,9 @@ if world.mode == 'train':
                 output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, _bpr_size, epoch, neg_k=world.config['negK'],w=w)
                 print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
                 # if True:
-            #     if epoch%5 == 0:
-            #         cprint("[TEST]")
-            #         Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
+                if epoch%5 == 0:
+                    cprint("[Validation]]")
+                    Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])
             torch.save(Recmodel.state_dict(), weight_filename)
             end = time.time()
             time_elasped = end - start

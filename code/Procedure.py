@@ -70,7 +70,7 @@ def BPR_train_original(dataset, recommend_model, loss_class, bpr_size, epoch, ne
 def test_one_batch(X):
     sorted_items = X[0].numpy()
     groundTrue = X[1]
-    r = utils.getLabel(groundTrue, sorted_items)
+    r = utils.getLabel(test_data = groundTrue, pred_data = sorted_items) ## what is it?
     pre, recall, ndcg = [], [], []
     for k in world.topks:
         ret = utils.RecallPrecision_ATk(groundTrue, r, k)
@@ -94,10 +94,11 @@ def Test(dataset, Recmodel, w=None, multicore=0, test_type = 'all'):
     max_K = max(world.topks)
     if multicore == 1:
         pool = multiprocessing.Pool(CORES)
+        
     results = {'precision': np.zeros(len(world.topks)),
-               'recall': np.zeros(len(world.topks)),
-               'ndcg': np.zeros(len(world.topks))
-               }
+            'recall': np.zeros(len(world.topks)),
+            'ndcg': np.zeros(len(world.topks))
+            }
     with torch.no_grad():
         users = list(testDict.keys())
         # print(f'users: {users}')
@@ -112,20 +113,16 @@ def Test(dataset, Recmodel, w=None, multicore=0, test_type = 'all'):
         # auc_record = []
         # ratings = []
         total_batch = len(users) // u_batch_size + 1
-        # total_batch == len(users_list)+1
-        # print(f'Length of test users = {len(users)}')
-        # print(f'Batch size = {u_batch_size}')
-        # total_batch = len(users) // u_batch_size 
         count = 0
         for batch_users in utils.minibatch(users, batch_size=u_batch_size):
             if count % 50 == 0:
                 print(f'Batch #: {count}')
-            allPos = dataset.getUserPosItems(batch_users)
+            allPos = dataset.getUserPosItems(batch_users) #all positive items across users
             groundTrue = [testDict[u] for u in batch_users]
             batch_users_gpu = torch.Tensor(batch_users).long()
             batch_users_gpu = batch_users_gpu.to(world.device)
             ## bug
-            rating = Recmodel.getUsersRating(batch_users_gpu)
+            rating = Recmodel.getUsersRating(batch_users_gpu) #u*v'
             #rating = rating.cpu()
             exclude_index = []
             exclude_items = []
@@ -133,7 +130,7 @@ def Test(dataset, Recmodel, w=None, multicore=0, test_type = 'all'):
                 exclude_index.extend([range_i] * len(items))
                 exclude_items.extend(items)
             rating[exclude_index, exclude_items] = -(1<<10)
-            _, rating_K = torch.topk(rating, k=max_K)
+            _, rating_K = torch.topk(rating, k=max_K) #(Tensor, LongTensor)
             rating = rating.cpu().numpy()
             del rating
             users_list.append(batch_users)

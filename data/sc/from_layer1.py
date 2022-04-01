@@ -103,7 +103,8 @@ flatten_clean_context_sdf = flatten_clean_context_sdf.join(item_sdf.drop('click'
 # flatten_clean_context_sdf = flatten_clean_context_sdf.where(col('service')!='public_content')
 print('過濾掉公版後context的數目:', flatten_clean_context_sdf.count())
 flatten_clean_context_sdf = flatten_clean_context_sdf.select(F.col('item_id'), F.col('cust_no'), F.col('date'),
-                               F.col('visitdatetime'), F.col('eventdatetime'), F.col('click'), F.col('show')
+                               #F.col('visitdatetime'), F.col('eventdatetime'), 
+                               F.col('click'), F.col('show')
                               )
 # 找出最先點擊或最先曝光(一天可能點同一個item多次)
 flatten_clean_context_sdf = flatten_clean_context_sdf.withColumn("day_order", F.row_number().over(Window.partitionBy(['cust_no', 'date', 'item_id']).orderBy(flatten_clean_context_sdf['eventdatetime'])))
