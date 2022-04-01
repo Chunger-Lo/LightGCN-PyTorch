@@ -37,10 +37,11 @@ parser.add_argument("-train_start_date",help="test date",type=str)
 parser.add_argument("-train_end_date",help="test date",type=str)
 parser.add_argument("-test_date",help="test date",type=str)
 args = parser.parse_args()
+version = 'v4'
 # ## 1. item-subtag (sc_item)
 item_sdf = (
     spark.read.parquet(
-        "s3a://df-smart-channel/recsys-dataset/beta_v2/layer1/sc_item"
+        f"s3a://df-smart-channel/recsys-dataset/beta_{version}/layer1/sc_item"
     ).where(col('service')=='smart_channel').
     where(
         (col("date")>=args.train_start_date) & (col("date")<=args.test_date)
@@ -78,7 +79,7 @@ export_file(item_subtag_df_test, args.test_date, 'item_subtag.csv')
 
 context_sdf = (
     spark.read.parquet(
-        "s3a://df-smart-channel/recsys-dataset/beta_v2/layer1/context"
+        f"s3a://df-smart-channel/recsys-dataset/beta_{version}/layer1/context"
     ).where(
         (col("date")>=args.train_start_date) & (col("date")<=args.test_date)
     )
@@ -140,7 +141,7 @@ export_file(context_df_test, args.test_date, 'context_test.csv')
 # ## 3. user-subtag (user)
 user_sdf = (
     spark.read.parquet(
-        "s3a://df-smart-channel/recsys-dataset/beta_v2/layer1/user"
+        f"s3a://df-smart-channel/recsys-dataset/beta_{version}/layer1/user"
     ).where(
         (col("date")>=args.train_end_date) & (col("date")<=args.test_date)
         #col("date") == train_end_date | col("date") == test_date

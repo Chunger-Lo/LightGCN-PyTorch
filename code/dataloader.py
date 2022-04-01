@@ -107,7 +107,7 @@ class Loader(BasicDataset):
         self.testdataSize_item_subtag = 0
 
         # if world.mode == 'fastdbug' or  world.mode == 'train':
-        if world.mode == 'fastdbug' or  world.mode == 'train' or  world.mode == 'test' :
+        if world.mode == 'fastdebug' or  world.mode == 'train' or  world.mode == 'test' :
             # user-item
             print(f'Loading {user_item_train_file}')
             print(f'Loading {user_item_test_file}')

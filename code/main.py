@@ -28,12 +28,7 @@ bpr = utils.BPRLoss(Recmodel, world.config)
 
 weight_filename = utils.getFileName()
 print(f"load or save to {weight_filename}")
-# if world.LOAD:
-#     try:
-#         Recmodel.load_state_dict(torch.load(weight_file,map_location=torch.device('cpu')))
-#         world.cprint(f"loaded model weights from {weight_file}")
-#     except FileNotFoundError:
-#         print(f"{weight_file} not exists, start from beginning")
+
 if world.mode == 'fastdebug':
     
     for _bpr_size in world.config['bpr_batch_size']:
