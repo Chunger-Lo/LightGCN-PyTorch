@@ -81,7 +81,7 @@ def test_one_batch(X):
             'precision':np.array(pre), 
             'ndcg':np.array(ndcg)}
 
-def Test(dataset, Recmodel, w=None, multicore=0, test_type = 'all'):
+def Test(dataset, Recmodel, epoch, w=None, multicore=0, test_type = 'all'):
     u_batch_size = world.config['test_u_batch_size']
     dataset: utils.BasicDataset
     if test_type == 'all':
@@ -159,22 +159,22 @@ def Test(dataset, Recmodel, w=None, multicore=0, test_type = 'all'):
         # results['auc'] = np.mean(auc_record)
         # print(f'testing #{epoch+1} epoch and log')
         if world.tensorboard:
-            # w.add_scalars(f'Test/Recall@{world.topks}',
-            #               {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, epoch)
-            # w.add_scalars(f'Test/Precision@{world.topks}',
-            #               {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, epoch)
-            # w.add_scalars(f'Test/NDCG@{world.topks}',
-            #               {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, epoch)
-            # w.add_scalars(f'Test/F1-score@{world.topks}',
-            #               {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, epoch)
             w.add_scalars(f'Test/Recall@{world.topks}',
-                          {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, 1)
+                          {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, epoch)
             w.add_scalars(f'Test/Precision@{world.topks}',
-                          {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, 1)
+                          {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, epoch)
             w.add_scalars(f'Test/NDCG@{world.topks}',
-                          {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, 1)
+                          {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, epoch)
             w.add_scalars(f'Test/F1-score@{world.topks}',
-                          {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, 1)
+                          {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, epoch)
+#             w.add_scalars(f'Test/Recall@{world.topks}',
+#                           {str(world.topks[i]): round(results['recall'][i],4) for i in range(len(world.topks))}, 1)
+#             w.add_scalars(f'Test/Precision@{world.topks}',
+#                           {str(world.topks[i]): round(results['precision'][i],4) for i in range(len(world.topks))}, 1)
+#             w.add_scalars(f'Test/NDCG@{world.topks}',
+#                           {str(world.topks[i]): results['ndcg'][i] for i in range(len(world.topks))}, 1)
+#             w.add_scalars(f'Test/F1-score@{world.topks}',
+#                           {str(world.topks[i]): results['f1_score'][i] for i in range(len(world.topks))}, 1)
         if multicore == 1:
             pool.close()
         # print(results)
