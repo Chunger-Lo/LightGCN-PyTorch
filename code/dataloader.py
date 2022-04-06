@@ -105,8 +105,7 @@ class Loader(BasicDataset):
         self.testdataSize_user_subtag = 0
         self.testdataSize_item_subtag = 0
 
-        # if world.mode == 'fastdbug' or  world.mode == 'train':
-        if world.mode == 'fastdebug' or  world.mode == 'train' or  world.mode == 'test' :
+        if world.mode == 'fastdbug' or  world.mode == 'train':
             # user-item
             print(f'Loading {user_item_train_file}')
             trainUser = []
@@ -296,9 +295,6 @@ class Loader(BasicDataset):
             self._allPos = self.getUserPosItems(list(range(self.n_user)))
             print(f"{world.dataset} is ready to go")
 
-        # elif  world.mode == 'test':
-
-
     @property
     def n_users(self):
         return self.n_user
@@ -455,78 +451,7 @@ class Loader(BasicDataset):
         for user in users:
             posItems.append(self.UserItemNet[user].nonzero()[1])
         return posItems
-class inferencer(BasicDataset):
-    def __init__(self,config = world.config,path="../data/gowalla", mode = world.mode):
-        print(config['test_date'])
-        dir_name = config['test_date']
-        user_item_test_file = path + '/date='+ config['test_date']  + '/test_user_item_retain.txt'
-        user_subtag_test_file = path + '/date='+ config['test_date']  + '/user_subtag.txt'
-        item_subtag_test_file = path + '/date='+ config['test_date']  + '/item_subtag.txt'
-
-        self.path = path
-
-        testUniqueUsers = [], []
-        self.n_user = 0
-        self.m_item = 0
-        self.r_subtag = 0
-        #
-        self.testdataSize_user_item = 0
-        self.testdataSize_user_subtag = 0
-        self.testdataSize_item_subtag = 0
-
-        # if world.mode == 'fastdbug' or  world.mode == 'train':
-        if world.mode == 'fastdebug' or  world.mode == 'train' or  world.mode == 'test' :
-            # user-item
-            print(f'Loading {user_item_train_file}')
-            trainUser = []
-            trainItem = []
-            n_interactions_train = 0 #number of interactions
-            nuser_train_user_item = 0
-            with open(user_item_train_file) as f:
-                for l in f.readlines():
-                    nuser_train_user_item += 1
-                    if len(l) > 0:
-                        l = l.strip('\n').split(' ')
-                        items = [int(i) for i in l[1:]]
-                        uid = int(l[0])
-                        trainUniqueUsers.append(uid)
-                        ## create connected pairs
-                        trainUser.extend([uid] * len(items))
-                        trainItem.extend(items)
-                        if len(items)>0:
-                            self.m_item = max(self.m_item, max(items))
-                        self.n_user = max(self.n_user, uid)
-                        n_interactions_train += len(items)
-            self.trainUniqueUsers = np.array(trainUniqueUsers)
-            self.trainUser_user_item = np.array(trainUser)
-            self.trainItem_user_item = np.array(trainItem)
-            self.traindataSize_user_item = n_interactions_train
-            self.__testDict = {}
-
-            print(f'Loading {user_item_test_file}')
-            testUser = []
-            testItem = []      
-            nuser_test_user_item = 0 
-            n_interactions_test = 0 #number of interactions
-            with open(user_item_test_file) as f:
-                for l in f.readlines():
-                    nuser_test_user_item += 1
-                    if len(l) > 0:
-                        l = l.strip('\n').split(' ')
-                        items = [int(i) for i in l[1:]]
-                        uid = int(l[0])
-                        self.__testDict[uid] = items ## add
-                        testUniqueUsers.append(uid)
-                        testUser.extend([uid] * len(items))
-                        testItem.extend(items)
-                        if len(items)>0:
-                            self.m_item = max(self.m_item, max(items))
-                        self.n_user = max(self.n_user, uid)
-                        n_interactions_test += len(items)
-            self.testUniqueUsers = np.array(testUniqueUsers)
-            self.testUser_user_item = np.array(testUser)
-            self.testItem_user_item = np.array(testItem)
-            self.testdataSize_user_item = n_interactions_test
+ 
 # class Loader(BasicDataset):
 #     def __init__(self,config = world.config,path="../data/gowalla", mode = world.mode):
 #         # train or test
