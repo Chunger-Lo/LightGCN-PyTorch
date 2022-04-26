@@ -50,7 +50,9 @@ if world.mode == 'fastdebug':
                 if True:
                     cprint("[Validation]")
                     Procedure.Test(dataset, Recmodel, w, multicore = world.config['multicore'])
-            print(f'state_dict:  {Recmodel.state_dict()}')
+                
+                user_embed = Recmodel.state_dict()['embedding_user.weight']
+                cprint(f'user_embed: {user_embed[:10]}')
             torch.save(Recmodel.state_dict(), weight_filename)
             end = time.time()
             time_elasped = end - start
@@ -77,7 +79,8 @@ if world.mode == 'train':
                 start = time.time()
                 output_information = Procedure.BPR_train_original(dataset, Recmodel, bpr, _bpr_size, epoch, neg_k=world.config['negK'],w=w)
                 print(f'EPOCH[{epoch+1}/{world.TRAIN_epochs}] {output_information}')
-                # if True:
+                user_embed = Recmodel.state_dict()['embedding_user.weight']
+                cprint(f'user_embed: {user_embed[0]}')
                 if epoch%5 == 0:
                     cprint("[Validation]]")
                     Procedure.Test(dataset, Recmodel, epoch, w, multicore = world.config['multicore'])

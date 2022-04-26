@@ -74,6 +74,7 @@ class Loader(BasicDataset):
         self.split = config['A_split']
         self.folds = config['A_n_fold']
         self.mode = world.mode
+        self.Graph = None
         print(config['test_date'])
 
         if world.dataset == 'sc':
@@ -105,7 +106,7 @@ class Loader(BasicDataset):
         self.testdataSize_user_subtag = 0
         self.testdataSize_item_subtag = 0
 
-        if world.mode == 'fastdbug' or  world.mode == 'train':
+        if world.mode == 'fastdebug' or  world.mode == 'train':
             # user-item
             print(f'Loading {user_item_train_file}')
             trainUser = []
@@ -248,7 +249,7 @@ class Loader(BasicDataset):
             print(f"{self.r_subtag} number of subtags")
             # print(f"{world.dataset} Sparsity : {(self.traindataSize_user_item + self.testdataSize_user_item) / self.n_users / self.m_items}")
             ### Create grpah
-            self.Graph = None
+            
             # (users,items), bipartite graph 
             print(f'data: {np.ones(len(self.trainUser_user_item))}')
             print(f'index row: {self.trainUser_user_item}') #max
